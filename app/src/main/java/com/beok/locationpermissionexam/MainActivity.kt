@@ -1,7 +1,6 @@
 package com.beok.locationpermissionexam
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
@@ -12,15 +11,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationResult
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
@@ -32,8 +27,6 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var fusedLocationClient: FusedLocationProviderClient
-
-    private var listeningToUpdates = false
 
     private val requestLocation =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -51,27 +44,13 @@ class MainActivity : AppCompatActivity() {
                 showFailToast()
                 return@registerForActivityResult
             }
-            startUpdatingLocation()
         }
-
-    private val locationCallback = object : LocationCallback() {
-        override fun onLocationResult(locationResult: LocationResult) {
-            showLocationToast(locationResult.lastLocation)
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         requestPermission()
-    }
-
-    override fun onStop() {
-        if (listeningToUpdates) {
-            stopUpdatingLocation()
-        }
-        super.onStop()
     }
 
     private fun showFailToast() {
@@ -122,8 +101,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    @SuppressLint("MissingPermission")
-    private fun startUpdatingLocation() = lifecycleScope.launch {
+    private fun startUpdatingLocation() {
         fusedLocationClient
             .locationFlow()
             .conflate()
@@ -132,9 +110,5 @@ class MainActivity : AppCompatActivity() {
             .observe(this@MainActivity) {
                 showLocationToast(it)
             }
-    }
-
-    private fun stopUpdatingLocation() {
-        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 }
