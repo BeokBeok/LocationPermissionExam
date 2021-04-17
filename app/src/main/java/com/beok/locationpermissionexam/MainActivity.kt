@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
                 showFailToast()
                 return@registerForActivityResult
             }
+            startUpdatingLocation()
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {

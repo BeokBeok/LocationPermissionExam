@@ -23,7 +23,13 @@ fun FusedLocationProviderClient.locationFlow() = callbackFlow<Location> {
     }
 
     requestLocationUpdates(
-        LocationRequest.create(),
+        LocationRequest
+            .create()
+            .apply {
+                interval = 3_000
+                fastestInterval = 2_000
+                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            },
         callback,
         Looper.getMainLooper()
     ).addOnFailureListener(::close)
