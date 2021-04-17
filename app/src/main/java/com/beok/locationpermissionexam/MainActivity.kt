@@ -23,13 +23,13 @@ class MainActivity : AppCompatActivity() {
     private val requestLocation =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             val isAllGranted = permissions.entries.all { it.value }
-            if (isAllGranted) {
-                requestGPS()
-            } else {
+            if (!isAllGranted) {
                 Toast
                     .makeText(this, "실패", Toast.LENGTH_SHORT)
                     .show()
+                return@registerForActivityResult
             }
+            requestGPS()
         }
     private val requestGPSSettings =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -51,7 +51,11 @@ class MainActivity : AppCompatActivity() {
     private fun requestGPS() {
         if (locationUtil.checkGPS()) {
             Toast
-                .makeText(this, "성공", Toast.LENGTH_SHORT)
+                .makeText(
+                    this,
+                    if (locationUtil.coordinate() == Coordinate()) "실패" else "성공",
+                    Toast.LENGTH_SHORT
+                )
                 .show()
             return
         }
