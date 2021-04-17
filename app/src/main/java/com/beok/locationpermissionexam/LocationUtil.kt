@@ -12,6 +12,6 @@ class LocationUtil @Inject constructor(private val locationManager: LocationMana
     fun coordinate(): Coordinate =
         (locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
             ?: locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER))?.let {
-            Coordinate(longitude = it.longitude, latitude = it.latitude)
+            Coordinate(latitude = it.latitude, longitude = it.longitude)
         } ?: Coordinate()
 }
