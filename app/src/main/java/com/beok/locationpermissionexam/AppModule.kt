@@ -2,6 +2,8 @@ package com.beok.locationpermissionexam
 
 import android.content.Context
 import android.location.LocationManager
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -22,4 +24,10 @@ class AppModule {
     @Singleton
     fun providesLocationUtil(locationManager: LocationManager) =
         LocationUtil(locationManager = locationManager)
+
+    @Provides
+    @Singleton
+    fun providesFusedLocationClient(
+        @ApplicationContext context: Context
+    ): FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
 }
