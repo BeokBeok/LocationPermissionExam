@@ -1,23 +1,43 @@
 package com.beok.locationpermissionexam
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var locationUtil: LocationUtil
 
     private val requestLocation =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             val isAllGranted = permissions.entries.all { it.value }
             if (isAllGranted) {
-                println()
+                requestGPS()
             } else {
-                println()
+                Toast
+                    .makeText(this, "실패", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+    private val requestGPSSettings =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (!locationUtil.checkGPS()) {
+                Toast
+                    .makeText(this, "실패", Toast.LENGTH_SHORT)
+                    .show()
+                return@registerForActivityResult
             }
         }
 
@@ -26,6 +46,16 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         requestPermission()
+    }
+
+    private fun requestGPS() {
+        if (locationUtil.checkGPS()) {
+            Toast
+                .makeText(this, "성공", Toast.LENGTH_SHORT)
+                .show()
+            return
+        }
+        requestGPSSettings.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
     }
 
     private fun requestPermission() {
