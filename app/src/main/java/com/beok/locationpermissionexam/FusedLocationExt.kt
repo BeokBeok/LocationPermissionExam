@@ -27,6 +27,7 @@ fun FusedLocationProviderClient.locationFlow() = callbackFlow<Location> {
             .apply {
                 interval = TimeUnit.SECONDS.toMillis(2)
                 fastestInterval = TimeUnit.SECONDS.toMillis(1)
+                numUpdates = 1
                 priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             },
         callback,
