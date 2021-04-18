@@ -17,9 +17,7 @@ import java.util.concurrent.TimeUnit
 fun FusedLocationProviderClient.locationFlow() = callbackFlow<Location> {
     val callback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
-            for (location in result.locations) {
-                offer(location)
-            }
+            offer(result.lastLocation)
         }
     }
 
