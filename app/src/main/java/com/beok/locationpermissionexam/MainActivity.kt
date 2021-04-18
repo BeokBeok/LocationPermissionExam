@@ -8,9 +8,12 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.asLiveData
+import com.beok.locationpermissionexam.databinding.ActivityMainBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,6 +30,9 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    private lateinit var binding: ActivityMainBinding
+    private val viewModel by viewModels<MainViewModel>()
 
     private val requestLocation =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
@@ -49,9 +55,15 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
+        setupBinding()
         requestPermission()
+    }
+
+    private fun setupBinding() {
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        binding.lifecycleOwner = this
+        binding.viewModel = viewModel
     }
 
     private fun showFailToast() {
@@ -103,12 +115,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startUpdatingLocation() {
+        viewModel.showLoading()
         fusedLocationClient
             .locationFlow()
             .conflate()
             .catch { showFailToast() }
             .asLiveData()
             .observe(this@MainActivity) {
+                viewModel.hideLoading()
                 showLocationToast(it)
             }
     }
