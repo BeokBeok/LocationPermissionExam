@@ -10,6 +10,7 @@ import com.google.android.gms.location.LocationResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
+import java.util.concurrent.TimeUnit
 
 @SuppressLint("MissingPermission")
 @ExperimentalCoroutinesApi
@@ -26,8 +27,8 @@ fun FusedLocationProviderClient.locationFlow() = callbackFlow<Location> {
         LocationRequest
             .create()
             .apply {
-                interval = 3_000
-                fastestInterval = 2_000
+                interval = TimeUnit.SECONDS.toMillis(2)
+                fastestInterval = TimeUnit.SECONDS.toMillis(1)
                 priority = LocationRequest.PRIORITY_HIGH_ACCURACY
             },
         callback,
