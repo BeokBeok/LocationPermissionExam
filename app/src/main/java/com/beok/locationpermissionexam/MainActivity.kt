@@ -88,6 +88,11 @@ class MainActivity : AppCompatActivity() {
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 )
             )
+            return
+        }
+        if (locationUtil.checkGPS()) {
+            startUpdatingLocation()
+            return
         }
     }
 
