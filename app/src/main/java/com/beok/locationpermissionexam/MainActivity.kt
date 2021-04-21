@@ -130,11 +130,14 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun startUpdatingLocation() = lifecycleScope.launchWhenCreated {
+    private fun startUpdatingLocation() {
         fusedLocationClient
             .locationFlow()
             .conflate()
             .catch { showFailToast() }
-            .collect { showLocationToast(it) }
+            .asLiveData()
+            .observe(this) {
+                showLocationToast(it)
+            }
     }
 }
