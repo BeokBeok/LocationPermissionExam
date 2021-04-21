@@ -13,12 +13,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.lifecycleScope
 import com.beok.locationpermissionexam.databinding.ActivityMainBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
@@ -50,14 +55,25 @@ class MainActivity : AppCompatActivity() {
                 showFailToast()
                 return@registerForActivityResult
             }
-            startUpdatingLocation()
+            recreate()
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setupBinding()
+        startUpdatingLocation()
+    }
+
+    override fun onStart() {
+        super.onStart()
+
         requestPermission()
+        lifecycleScope.launchWhenStarted {
+            runCatching {
+                fusedLocationClient.awaitLastLocation()
+            }.onSuccess(::showLocationToast)
+        }
     }
 
     private fun setupBinding() {
@@ -73,11 +89,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestGPS() {
-        if (locationUtil.checkGPS()) {
-            startUpdatingLocation()
-            return
+        if (!locationUtil.checkGPS()) {
+            requestGPSSettings.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
         }
-        requestGPSSettings.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+        recreate()
     }
 
     private fun requestPermission() {
@@ -88,10 +103,6 @@ class MainActivity : AppCompatActivity() {
                     Manifest.permission.ACCESS_COARSE_LOCATION
                 )
             )
-            return
-        }
-        if (locationUtil.checkGPS()) {
-            startUpdatingLocation()
             return
         }
     }
@@ -119,16 +130,11 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun startUpdatingLocation() {
-        viewModel.showLoading()
+    private fun startUpdatingLocation() = lifecycleScope.launchWhenCreated {
         fusedLocationClient
             .locationFlow()
             .conflate()
             .catch { showFailToast() }
-            .asLiveData()
-            .observe(this@MainActivity) {
-                viewModel.hideLoading()
-                showLocationToast(it)
-            }
+            .collect { showLocationToast(it) }
     }
 }
