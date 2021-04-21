@@ -10,7 +10,19 @@ import com.google.android.gms.location.LocationResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+
+@ExperimentalCoroutinesApi
+@SuppressLint("MissingPermission")
+suspend fun FusedLocationProviderClient.awaitLastLocation(): Location =
+    suspendCancellableCoroutine { continuation ->
+        lastLocation
+            .addOnSuccessListener(continuation::resume)
+            .addOnFailureListener(continuation::resumeWithException)
+    }
 
 @SuppressLint("MissingPermission")
 @ExperimentalCoroutinesApi
